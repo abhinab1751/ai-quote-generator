@@ -14,9 +14,6 @@ CORS(app, resources={
     }
 })
 
-@app.route("/")
-def home():
-    return "AI Quote Generator Backend Running"
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 model = tf.keras.models.load_model(os.path.join(BASE, "quote_model.h5"))
