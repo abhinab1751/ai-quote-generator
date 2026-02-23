@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Quote Generator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f5f0e8;
+      --ink: #1a1714;
+      --muted: #9a9188;
+      --accent: #c0392b;
+      --accent-light: rgba(192, 57, 43, 0.08);
+      --border: #ddd8ce;
+      --card-bg: #fff;
+    }
+
+    html, body {
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'Space Mono', monospace;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    .page {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 64px 24px 100px;
+    }
+
+    header {
+      margin-bottom: 56px;
+      animation: fadeUp 0.7s ease both;
+    }
+
+    .header-top {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 8px;
+    }
+
+    .logo {
+      width: 36px;
+      height: 36px;
+      border: 2px solid var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .logo svg { width: 18px; height: 18px; fill: var(--accent); }
+
+    .site-name {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.6rem, 7vw, 4rem);
+      font-weight: 700;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+    }
+
+    h1 em {
+      font-style: italic;
+      font-weight: 400;
+    }
+
+    .subtitle {
+      margin-top: 12px;
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    .rule {
+      height: 1px;
+      background: var(--border);
+      margin: 32px 0;
+    }
+
+    .form {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      animation: fadeUp 0.7s 0.1s ease both;
+    }
+
+    .field-label {
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-bottom: 2px solid var(--ink);
+      padding: 12px 16px;
+      font-family: 'Playfair Display', serif;
+      font-size: 1.15rem;
+      font-style: italic;
+      color: var(--ink);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input[type="text"]::placeholder { color: var(--muted); }
+    input[type="text"]:focus { border-bottom-color: var(--accent); }
+
+    .count-pills {
+      display: flex;
+      gap: 8px;
+    }
+
+    .pill {
+      width: 40px;
+      height: 40px;
+      border: 1px solid var(--border);
+      background: var(--card-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      color: var(--muted);
+    }
+    .pill:hover { border-color: var(--ink); color: var(--ink); }
+    .pill.active {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: var(--bg);
+    }
+
+    .generate-btn {
+      position: relative;
+      width: 100%;
+      padding: 16px 24px;
+      background: var(--ink);
+      border: none;
+      color: var(--bg);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      cursor: pointer;
+      overflow: hidden;
+      transition: background 0.2s;
+    }
+    .generate-btn::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--accent);
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+    }
+    .generate-btn:hover::after { transform: translateX(0); }
+    .generate-btn span { position: relative; z-index: 1; }
+    .generate-btn:disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
+
+    .loader {
+      display: none;
+      align-items: center;
+      gap: 12px;
+      padding: 32px 0;
+      color: var(--muted);
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+    .loader.active { display: flex; }
+    .loader-dots { display: flex; gap: 4px; }
+    .loader-dots span {
+      width: 5px; height: 5px;
+      background: var(--accent);
+      animation: blink 1.2s ease-in-out infinite;
+    }
+    .loader-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .loader-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+    .results { margin-top: 48px; display: flex; flex-direction: column; gap: 2px; }
+
+    .quote-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      padding: 32px 32px 24px;
+      animation: fadeUp 0.45s ease both;
+      position: relative;
+    }
+
+    .quote-number {
+      font-size: 0.58rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+
+    .quote-text {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.1rem, 2.5vw, 1.35rem);
+      font-style: italic;
+      line-height: 1.7;
+      color: var(--ink);
+    }
+
+    .quote-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 16px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .copy-btn {
+      background: none;
+      border: none;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color 0.15s;
+      padding: 0;
+    }
+    .copy-btn:hover { color: var(--accent); }
+    .copy-btn.copied { color: #27ae60; }
+
+
+    .error {
+      display: none;
+      margin-top: 20px;
+      padding: 14px 18px;
+      border: 1px solid rgba(192, 57, 43, 0.3);
+      background: var(--accent-light);
+      font-size: 0.7rem;
+      color: var(--accent);
+      letter-spacing: 0.05em;
+    }
+    .error.active { display: block; }
+
+    footer {
+      margin-top: 80px;
+      text-align: center;
+      font-size: 0.58rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      animation: fadeUp 0.7s 0.2s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 0.2; transform: scaleY(0.6); }
+      50%       { opacity: 1;   transform: scaleY(1); }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <div class="header-top">
+      <div class="logo">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+      </div>
+      <span class="site-name">AI Quote Generator</span>
+    </div>
+    <h1>Words born<br/>from <em>intelligence</em></h1>
+    <p class="subtitle">AI-powered quote generation</p>
+  </header>
+
+  <div class="rule"></div>
+
+  <div class="form">
+    <div>
+      <div class="field-label">Topic or seed phrase</div>
+      <input type="text" id="topicInput" placeholder="life is, courage, the mind..."/>
+    </div>
+
+    <div>
+      <div class="field-label">Number of quotes</div>
+      <div class="count-pills" id="countPills">
+        <div class="pill active" data-count="1">1</div>
+        <div class="pill" data-count="2">2</div>
+        <div class="pill" data-count="3">3</div>
+        <div class="pill" data-count="4">4</div>
+        <div class="pill" data-count="5">5</div>
+      </div>
+    </div>
+
+    <button class="generate-btn" id="generateBtn">
+      <span>Generate Quotes</span>
+    </button>
+  </div>
+
+  <div class="error" id="error"></div>
+
+  <div class="loader" id="loader">
+    <div class="loader-dots"><span></span><span></span><span></span></div>
+    Generating...
+  </div>
+
+  <div class="results" id="results"></div>
+
+  <footer>Vamos</footer>
+
+</div>
+
+<script>
+  const API = "http://127.0.0.1:5000/generate";
+  let selectedCount = 1;
+
+  document.getElementById("countPills").addEventListener("click", e => {
+    const pill = e.target.closest(".pill");
+    if (!pill) return;
+    document.querySelectorAll(".pill").forEach(p => p.classList.remove("active"));
+    pill.classList.add("active");
+    selectedCount = parseInt(pill.dataset.count);
+  });
+
+  document.getElementById("generateBtn").addEventListener("click", generate);
+  document.getElementById("topicInput").addEventListener("keydown", e => {
+    if (e.key === "Enter") generate();
+  });
+
+  async function generate() {
+    const topic = document.getElementById("topicInput").value.trim() || "life";
+    const btn = document.getElementById("generateBtn");
+    const loader = document.getElementById("loader");
+    const results = document.getElementById("results");
+    const error = document.getElementById("error");
+
+    btn.disabled = true;
+    loader.classList.add("active");
+    results.innerHTML = "";
+    error.classList.remove("active");
+
+    try {
+      const res = await fetch(API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ topic, count: selectedCount })
+      });
+
+      if (!res.ok) throw new Error(`Server responded with ${res.status}`);
+      const data = await res.json();
+
+      data.quotes.forEach((quote, i) => {
+        setTimeout(() => addCard(quote, i + 1), i * 150);
+      });
+
+    } catch (err) {
+      error.textContent = `Could not reach the backend. Make sure app.py is running. (${err.message})`;
+      error.classList.add("active");
+    } finally {
+      btn.disabled = false;
+      loader.classList.remove("active");
+    }
+  }
+
+  function addCard(text, num) {
+    const card = document.createElement("div");
+    card.className = "quote-card";
+    card.style.animationDelay = "0ms";
+    card.innerHTML = `
+      <div class="quote-number">Quote ${num}</div>
+      <p class="quote-text">${esc(text)}</p>
+      <div class="quote-actions">
+        <button class="copy-btn" onclick="copyText(this, \`${esc(text)}\`)">Copy</button>
+      </div>
+    `;
+    document.getElementById("results").appendChild(card);
+  }
+
+  function copyText(btn, text) {
+    navigator.clipboard.writeText(`"${text}"`).then(() => {
+      btn.textContent = "Copied!";
+      btn.classList.add("copied");
+      setTimeout(() => { btn.textContent = "Copy"; btn.classList.remove("copied"); }, 2000);
+    });
+  }
+
+  function esc(str) {
+    return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/`/g,"&#96;");
+  }
+</script>
+</body>
+</html>
