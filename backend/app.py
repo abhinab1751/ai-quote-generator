@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import numpy as np
 import tensorflow as tf
@@ -27,7 +27,6 @@ max_sequence_len = config["max_sequence_len"]
 index_to_word = {i: w for w, i in tokenizer.word_index.items()}
 
 
-# ── Helpers ──
 def sample_with_temperature(preds, temperature=1.0):
     preds = np.asarray(preds).astype("float64")
     preds = np.log(preds + 1e-8) / temperature
@@ -50,10 +49,9 @@ def generate_quote(seed_text, next_words=20, temperature=0.8):
     return result.strip()
 
 
-# ── Routes ──
 @app.route("/")
 def home():
-    return jsonify({"status": "AI Quote Generator Backend Running"})
+    return send_from_directory(BASE, "index.html")
 
 
 @app.route("/health")
