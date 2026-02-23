@@ -11,8 +11,8 @@ app = Flask(__name__)
 CORS(app)
 
 @app.route("/")
-def serve_frontend():
-    return send_from_directory("../frontend", "index.html")
+def home():
+    return "AI Quote Generator Backend Running"
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 model = tf.keras.models.load_model(os.path.join(BASE, "quote_model.h5"))
