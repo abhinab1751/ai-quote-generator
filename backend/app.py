@@ -13,7 +13,7 @@ CORS(app, resources={
     }
 })
 
-# ── Load model, tokenizer, config once at startup ──
+
 BASE = os.path.dirname(os.path.abspath(__file__))
 model = tf.keras.models.load_model(os.path.join(BASE, "quote_model.h5"))
 
