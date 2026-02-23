@@ -5,7 +5,6 @@ import tensorflow as tf
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 import pickle
 import os
-from flask import send_from_directory
 
 app = Flask(__name__)
 CORS(app, resources={
@@ -14,7 +13,7 @@ CORS(app, resources={
     }
 })
 
-
+# ── Load model, tokenizer, config once at startup ──
 BASE = os.path.dirname(os.path.abspath(__file__))
 model = tf.keras.models.load_model(os.path.join(BASE, "quote_model.h5"))
 
@@ -28,6 +27,7 @@ max_sequence_len = config["max_sequence_len"]
 index_to_word = {i: w for w, i in tokenizer.word_index.items()}
 
 
+# ── Helpers ──
 def sample_with_temperature(preds, temperature=1.0):
     preds = np.asarray(preds).astype("float64")
     preds = np.log(preds + 1e-8) / temperature
@@ -50,36 +50,30 @@ def generate_quote(seed_text, next_words=20, temperature=0.8):
     return result.strip()
 
 
+# ── Routes ──
 @app.route("/")
 def home():
     return jsonify({"status": "AI Quote Generator Backend Running"})
+
 
 @app.route("/health")
 def health():
     return jsonify({"status": "ok"})
 
+
 @app.route("/generate", methods=["POST", "OPTIONS"])
 def generate():
-
     if request.method == "OPTIONS":
         return jsonify({}), 200
 
     data = request.get_json() or {}
 
     topic = data.get("topic", "life").strip() or "life"
+    count = max(1, min(int(data.get("count", 1)), 5))
 
-    count = int(data.get("count", 1))
-    count = max(1, min(count, 5))
+    quotes = [generate_quote(topic, 20, 0.8) for _ in range(count)]
 
-    quotes = [
-        generate_quote(topic, 20, 0.8)
-        for _ in range(count)
-    ]
-
-    return jsonify({
-        "quotes": quotes,
-        "topic": topic
-    })
+    return jsonify({"quotes": quotes, "topic": topic})
 
 
 if __name__ == "__main__":
