@@ -1,4 +1,4 @@
-# 🧠 Oracle — AI Quote Generator
+# 🧠AI Quote Generator
 
 > An end-to-end AI-powered quote generation web app built with a custom LSTM language model, Flask REST API, and a clean HTML/CSS/JS frontend.
 
@@ -26,7 +26,7 @@
 
 ## Overview
 
-Oracle is an AI quote generator that uses a custom-trained LSTM (Long Short-Term Memory) neural network to generate original, human-like quotes based on a topic or seed phrase provided by the user. The model was trained on a dataset of real quotes and learns the patterns, rhythm, and structure of meaningful language.
+An AI quote generator that uses a custom-trained LSTM (Long Short-Term Memory) neural network to generate original, human-like quotes based on a topic or seed phrase provided by the user. The model was trained on a dataset of real quotes and learns the patterns, rhythm, and structure of meaningful language.
 
 Unlike retrieval-based quote apps that just fetch quotes from a database, Oracle **generates entirely new quotes** that have never existed before — every output is unique.
 
