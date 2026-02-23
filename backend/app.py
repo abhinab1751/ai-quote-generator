@@ -4,16 +4,18 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 import pickle
+import os
 
 app = Flask(__name__)
 CORS(app)
 
-model = tf.keras.models.load_model("../model/quote_model.h5")
+BASE = os.path.dirname(os.path.abspath(__file__))
+model = tf.keras.models.load_model(os.path.join(BASE, "quote_model.h5"))
 
-with open("../model/tokenizer.pkl", "rb") as f:
+with open(os.path.join(BASE, "tokenizer.pkl"), "rb") as f:
     tokenizer = pickle.load(f)
 
-with open("../model/config.pkl", "rb") as f:
+with open(os.path.join(BASE, "config.pkl"), "rb") as f:
     config = pickle.load(f)
 
 max_sequence_len = config["max_sequence_len"]
