@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 import numpy as np
 import tensorflow as tf
@@ -51,7 +51,8 @@ def generate_quote(seed_text, next_words=20, temperature=0.8):
 
 @app.route("/")
 def home():
-    return send_from_directory(BASE, "index.html")
+    with open(os.path.join(BASE, "index.html"), "r", encoding="utf-8") as f:
+        return f.read(), 200, {"Content-Type": "text/html"}
 
 
 @app.route("/health")
