@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import numpy as np
 import tensorflow as tf
@@ -76,7 +76,7 @@ def generate_quote(seed_text, next_words=20, temperature=0.8):
 
 @app.route("/")
 def home():
-    return jsonify({"message": "AI Quote Generator Backend Running"})
+    return render_template("index.html")
 
 
 @app.route("/health")
